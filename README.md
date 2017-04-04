@@ -6,7 +6,7 @@
 cargo run
 ```
 
-- Up, Down, Left, Right: Move draw range
+- Up, Down, Left, Right: Move
 - Enter: zoom in
 - Backspace, Delete: zoom out 
 - Z: precision increment
