@@ -6,3 +6,4 @@ authors = ["kmtoki <higumaido@gmail.com>"]
 [dependencies]
 glium = "*"
 glutin = "*"
+gmp = "*"

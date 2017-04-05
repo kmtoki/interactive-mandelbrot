@@ -3,9 +3,6 @@ extern crate glium;
 use glium::{DisplayBuild, Surface, Program};
 use glium::{glutin, index, vertex};
 
-use std::thread;
-use std::time;
-
 #[derive(Copy, Clone)]
 struct Vertex {
   pos: [f64; 2]
@@ -100,18 +97,82 @@ fn main() {
 
   let index = index::NoIndices(index::PrimitiveType::Points);
 
-  let mut density: f64 = 0.005;
-  let mut max: f64 = 500.0;
+  let mut density: f64 = 0.01;
+  let mut max: f64 = 100.0;
   let mut scale: f64 = 3.0;
   let mut center_y: f64 = 0.0;
-  let mut center_x: f64 = -1.78;
+  let mut center_x: f64 = 0.0;
 
   loop {
     let vertex_buffer = vertex::VertexBuffer::new(
       &display, &vertexs(1.0, 1.0, density)
     ).unwrap();
 
-    println!("{} {} {} {} {}", center_y, center_x, scale, max, density);
+    let mut frame = display.draw();
+    frame.clear_color(0.0, 0.0, 0.0 ,0.0);
+
+    for e in display.wait_events() {
+      match e {
+        glutin::Event::KeyboardInput(
+          glutin::ElementState::Pressed, _, Some(keycode)
+        ) => {
+          println!("{:?}", e);
+          match keycode {
+            glutin::VirtualKeyCode::Up => {
+              center_y += 0.05 * scale; 
+            },
+
+            glutin::VirtualKeyCode::Down => {
+              center_y -= 0.05 * scale;
+            },
+
+            glutin::VirtualKeyCode::Left => {
+              center_x -= 0.05 * scale;
+            },
+
+            glutin::VirtualKeyCode::Right => {
+              center_x += 0.05 * scale;
+            },
+
+            glutin::VirtualKeyCode::Return => {
+              scale *= 0.9;
+            },
+
+            glutin::VirtualKeyCode::Back => {
+              scale /= 0.9;
+            },
+
+            glutin::VirtualKeyCode::Z => {
+              max += 1.0;
+            },
+
+            glutin::VirtualKeyCode::X => {
+              max -= 1.0;
+            },
+
+            glutin::VirtualKeyCode::C => {
+              if density > 0.002 {
+                density *= 0.9
+              }
+            },
+
+            glutin::VirtualKeyCode::V => {
+              density /= 0.9;
+            },
+
+            glutin::VirtualKeyCode::Escape => {
+              frame.finish().unwrap();
+              return
+            },
+
+            _ => {}
+          }
+
+        },
+
+        _ => break
+      }
+    }
 
     let uniforms = uniform! {
       max: max,
@@ -119,30 +180,10 @@ fn main() {
       center_y: center_y,
       center_x: center_x,
     };
-
-    let mut frame = display.draw();
-
-    for e in display.poll_events() {
-      match e {
-        glutin::Event::KeyboardInput(
-          glutin::ElementState::Pressed, 
-          _, 
-          Some(glutin::VirtualKeyCode::Q)
-        ) => {
-          frame.finish().unwrap();
-          return
-        },
-
-        _ => {} 
-      }
-    }
-
-    scale *= 0.9;
     
-    frame.clear_color(0.0, 0.0, 0.0 ,0.0);
+    println!("{} {} {} {} {}", center_y, center_x, scale, max, density);
+
     frame.draw(&vertex_buffer, &index, &program, &uniforms, &Default::default()).unwrap();
     frame.finish().unwrap();
-
-    thread::sleep(time::Duration::from_millis(100));
   }
 }
